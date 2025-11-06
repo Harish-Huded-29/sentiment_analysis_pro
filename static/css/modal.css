@@ -1,0 +1,537 @@
+/* ============================================================
+   MODAL STYLES
+   ============================================================ */
+
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(10px);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    animation: fadeIn 0.3s ease;
+}
+
+.modal.hidden {
+    display: none;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.modal-content {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    max-width: 1200px;
+    width: 100%;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+    animation: slideUp 0.3s ease;
+}
+
+.modal-large {
+    max-width: 1400px;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(50px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 2rem 2.5rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.modal-header h2 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    background: var(--accent-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.modal-close {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 1.5rem;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-close:hover {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    border-color: var(--border-hover);
+    transform: scale(1.1);
+}
+
+.modal-body {
+    padding: 2rem 2.5rem;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.modal-body::-webkit-scrollbar {
+    width: 10px;
+}
+
+.modal-body::-webkit-scrollbar-track {
+    background: var(--bg-secondary);
+    border-radius: 5px;
+}
+
+.modal-body::-webkit-scrollbar-thumb {
+    background: var(--bg-tertiary);
+    border-radius: 5px;
+    border: 2px solid var(--bg-secondary);
+}
+
+.modal-body::-webkit-scrollbar-thumb:hover {
+    background: var(--border-hover);
+}
+
+/* ============================================================
+   COMMENTS TABLE
+   ============================================================ */
+
+.comments-table-container {
+    overflow-x: auto;
+    margin-bottom: 2rem;
+}
+
+.comments-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.comments-table thead {
+    background: var(--bg-tertiary);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.comments-table th {
+    padding: 1rem 1.5rem;
+    text-align: left;
+    font-weight: 600;
+    color: var(--text-primary);
+    border-bottom: 2px solid var(--border);
+    white-space: nowrap;
+}
+
+.comments-table tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: all var(--transition-fast);
+}
+
+.comments-table tbody tr:hover {
+    background: var(--bg-tertiary);
+}
+
+.comments-table td {
+    padding: 1.25rem 1.5rem;
+    color: var(--text-secondary);
+}
+
+.comment-number {
+    font-weight: 600;
+    color: var(--accent-primary);
+    font-size: 1rem;
+}
+
+.comment-text {
+    line-height: 1.7;
+    color: var(--text-primary);
+    word-wrap: break-word;
+    white-space: pre-wrap;
+    max-width: 600px;
+}
+
+.sentiment-badge {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.sentiment-badge.positive {
+    background: rgba(16, 185, 129, 0.15);
+    color: var(--positive);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.sentiment-badge.negative {
+    background: rgba(239, 68, 68, 0.15);
+    color: var(--negative);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.sentiment-badge.neutral {
+    background: rgba(245, 158, 11, 0.15);
+    color: var(--neutral);
+    border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.btn-summarize {
+    padding: 0.625rem 1.25rem;
+    background: rgba(102, 126, 234, 0.1);
+    color: var(--accent-primary);
+    border: 1px solid rgba(102, 126, 234, 0.3);
+    border-radius: 8px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    white-space: nowrap;
+}
+
+.btn-summarize:hover {
+    background: var(--accent-primary);
+    color: white;
+    border-color: var(--accent-primary);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.btn-summarize:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* ============================================================
+   PAGINATION
+   ============================================================ */
+
+.pagination-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.5rem 0;
+    border-top: 1px solid var(--border);
+}
+
+.pagination-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.pagination-btn:hover:not(:disabled) {
+    background: var(--bg-secondary);
+    border-color: var(--border-hover);
+    transform: translateY(-2px);
+}
+
+.pagination-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.pagination-numbers {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.page-number {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-tertiary);
+    color: var(--text-secondary);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.page-number:hover {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    border-color: var(--border-hover);
+}
+
+.page-number.active {
+    background: var(--accent-gradient);
+    color: white;
+    border-color: transparent;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.page-ellipsis {
+    color: var(--text-muted);
+    padding: 0 0.5rem;
+}
+
+/* ============================================================
+   SUMMARY MODAL
+   ============================================================ */
+
+.summary-section {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.original-comment-box {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--accent-primary);
+    border-radius: 12px;
+    padding: 1.5rem;
+}
+
+.original-comment-box h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    color: var(--text-primary);
+}
+
+.original-comment-box p {
+    line-height: 1.8;
+    color: var(--text-secondary);
+    margin-bottom: 1rem;
+    word-wrap: break-word;
+    white-space: pre-wrap;
+}
+
+.comment-meta {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.confidence-value {
+    padding: 0.5rem 1rem;
+    background: rgba(102, 126, 234, 0.1);
+    color: var(--accent-primary);
+    border: 1px solid rgba(102, 126, 234, 0.3);
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.summary-loading {
+    text-align: center;
+    padding: 3rem;
+}
+
+.loading-spinner {
+    width: 60px;
+    height: 60px;
+    border: 4px solid var(--bg-tertiary);
+    border-top-color: var(--accent-primary);
+    border-radius: 50%;
+    margin: 0 auto 1.5rem;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.summary-loading p {
+    color: var(--text-secondary);
+    font-size: 1rem;
+}
+
+.summary-result {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 2rem;
+}
+
+.summary-result.hidden {
+    display: none;
+}
+
+.ai-analysis-content {
+    line-height: 1.9;
+    color: var(--text-secondary);
+}
+
+.ai-analysis-content h1,
+.ai-analysis-content h2,
+.ai-analysis-content h3,
+.ai-analysis-content h4 {
+    color: var(--text-primary);
+    margin-top: 1.5rem;
+    margin-bottom: 0.75rem;
+    font-weight: 600;
+}
+
+.ai-analysis-content h1 {
+    font-size: 1.5rem;
+    background: var(--accent-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.ai-analysis-content h2 {
+    font-size: 1.3rem;
+}
+
+.ai-analysis-content h3 {
+    font-size: 1.1rem;
+}
+
+.ai-analysis-content p {
+    margin-bottom: 1rem;
+}
+
+.ai-analysis-content ul,
+.ai-analysis-content ol {
+    margin-left: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.ai-analysis-content li {
+    margin-bottom: 0.5rem;
+}
+
+.ai-analysis-content strong {
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.ai-analysis-content code {
+    background: var(--bg-tertiary);
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.9em;
+}
+
+.ai-analysis-content pre {
+    background: var(--bg-tertiary);
+    padding: 1rem;
+    border-radius: 8px;
+    overflow-x: auto;
+    margin-bottom: 1rem;
+}
+
+/* ============================================================
+   ACTION SECTION
+   ============================================================ */
+
+.action-section {
+    text-align: center;
+    animation: fadeInUp 0.6s ease-out 0.15s both;
+}
+
+/* ============================================================
+   RESPONSIVE DESIGN FOR MODALS
+   ============================================================ */
+
+@media (max-width: 768px) {
+    .modal {
+        padding: 1rem;
+    }
+
+    .modal-content {
+        max-height: 95vh;
+        border-radius: 16px;
+    }
+
+    .modal-header {
+        padding: 1.5rem;
+    }
+
+    .modal-header h2 {
+        font-size: 1.3rem;
+    }
+
+    .modal-body {
+        padding: 1.5rem;
+    }
+
+    .comments-table th,
+    .comments-table td {
+        padding: 0.875rem;
+        font-size: 0.9rem;
+    }
+
+    .comment-text {
+        max-width: 300px;
+    }
+
+    .pagination-container {
+        flex-wrap: wrap;
+        gap: 0.75rem;
+    }
+
+    .pagination-btn {
+        padding: 0.625rem 1rem;
+        font-size: 0.85rem;
+    }
+
+    .page-number {
+        width: 36px;
+        height: 36px;
+        font-size: 0.85rem;
+    }
+
+    .original-comment-box {
+        padding: 1rem;
+    }
+
+    .summary-result {
+        padding: 1.5rem;
+    }
+}
