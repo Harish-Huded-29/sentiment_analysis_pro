@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sentiment Analysis Pro | Advanced AI Analytics</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/modal.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+</head>
+<body>
+    <!-- Animated Background -->
+    <div class="background-animation">
+        <div class="gradient-orb orb-1"></div>
+        <div class="gradient-orb orb-2"></div>
+        <div class="gradient-orb orb-3"></div>
+    </div>
+
+    <div class="container">
+        <!-- Premium Header -->
+        <header class="header">
+            <div class="header-content">
+                <div class="logo-section">
+                    <div class="logo">
+                        <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+                            <defs>
+                                <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+                                    <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+                                </linearGradient>
+                            </defs>
+                            <rect width="48" height="48" rx="12" fill="url(#logoGradient)"/>
+                            <path d="M24 14L32 19V29L24 34L16 29V19L24 14Z" stroke="white" stroke-width="2.5" fill="none"/>
+                            <circle cx="24" cy="24" r="4" fill="white"/>
+                        </svg>
+                    </div>
+                    <div class="logo-text">
+                        <h1>Sentiment Analysis Pro</h1>
+                        <p class="tagline">AI-Powered Analytics Engine</p>
+                    </div>
+                </div>
+                <div class="header-stats">
+                    <div class="stat-badge">
+                        <span class="badge-icon">⚡</span>
+                        <span class="badge-text">GPU Accelerated</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Upload Section -->
+        <section id="uploadSection" class="section-card upload-section">
+            <div class="card-header">
+                <h2 class="section-title">Upload Your Data</h2>
+                <p class="section-subtitle">Drop your Excel file or click to browse</p>
+            </div>
+            
+            <div class="upload-zone" id="uploadZone">
+                <div class="upload-icon">
+                    <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
+                    </svg>
+                </div>
+                <div class="upload-text">
+                    <h3>Drop Excel file here</h3>
+                    <p>or click to browse files</p>
+                </div>
+                <input type="file" id="fileInput" accept=".xlsx,.xls" hidden>
+                <div class="file-info" id="fileInfo" style="display: none;">
+                    <div class="file-icon">📄</div>
+                    <div class="file-details">
+                        <div class="file-name" id="fileName"></div>
+                        <div class="file-size" id="fileSize"></div>
+                    </div>
+                    <button class="btn-remove" id="removeFile">✕</button>
+                </div>
+            </div>
+
+            <button id="analyzeBtn" class="btn-primary btn-large" disabled>
+                <span class="btn-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+                    </svg>
+                </span>
+                <span class="btn-text">Start Analysis</span>
+            </button>
+        </section>
+
+        <!-- Processing Section -->
+        <section id="processingSection" class="section-card processing-section hidden">
+            <div class="card-header">
+                <h2 class="section-title">Processing Your Data</h2>
+                <p class="section-subtitle">AI is analyzing your reviews...</p>
+            </div>
+            
+            <div class="processing-content">
+                <div class="progress-circle">
+                    <svg class="progress-ring" width="160" height="160">
+                        <circle class="progress-ring-bg" cx="80" cy="80" r="70"/>
+                        <circle class="progress-ring-progress" cx="80" cy="80" r="70" id="progressCircle"/>
+                    </svg>
+                    <div class="progress-percentage" id="progressPercent">0%</div>
+                </div>
+                
+                <div class="progress-details">
+                    <div class="progress-stat">
+                        <span class="stat-label">Progress</span>
+                        <span class="stat-value" id="progressCount">0 / 0</span>
+                    </div>
+                    <div class="progress-stat">
+                        <span class="stat-label">Speed</span>
+                        <span class="stat-value" id="processingSpeed">0 reviews/sec</span>
+                    </div>
+                    <div class="progress-stat">
+                        <span class="stat-label">ETA</span>
+                        <span class="stat-value" id="etaTime">Calculating...</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="live-stats">
+                <div class="live-stat positive">
+                    <div class="stat-icon">😊</div>
+                    <div class="stat-number" id="livePositive">0</div>
+                    <div class="stat-label">Positive</div>
+                </div>
+                <div class="live-stat neutral">
+                    <div class="stat-icon">😐</div>
+                    <div class="stat-number" id="liveNeutral">0</div>
+                    <div class="stat-label">Neutral</div>
+                </div>
+                <div class="live-stat negative">
+                    <div class="stat-icon">😞</div>
+                    <div class="stat-number" id="liveNegative">0</div>
+                    <div class="stat-label">Negative</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Results Dashboard -->
+        <section id="resultsSection" class="results-section hidden">
+            <!-- Stats Overview -->
+            <div class="stats-grid">
+                <div class="stat-card positive-card">
+                    <div class="stat-card-header">
+                        <div class="stat-icon-large">😊</div>
+                        <div class="stat-badge positive">Positive</div>
+                    </div>
+                    <div class="stat-number-large" id="positiveCount">0</div>
+                    <div class="stat-percentage-bar">
+                        <div class="percentage-fill positive" id="positiveBar"></div>
+                    </div>
+                    <div class="stat-label-large" id="positivePercent">0%</div>
+                </div>
+
+                <div class="stat-card neutral-card">
+                    <div class="stat-card-header">
+                        <div class="stat-icon-large">😐</div>
+                        <div class="stat-badge neutral">Neutral</div>
+                    </div>
+                    <div class="stat-number-large" id="neutralCount">0</div>
+                    <div class="stat-percentage-bar">
+                        <div class="percentage-fill neutral" id="neutralBar"></div>
+                    </div>
+                    <div class="stat-label-large" id="neutralPercent">0%</div>
+                </div>
+
+                <div class="stat-card negative-card">
+                    <div class="stat-card-header">
+                        <div class="stat-icon-large">😞</div>
+                        <div class="stat-badge negative">Negative</div>
+                    </div>
+                    <div class="stat-number-large" id="negativeCount">0</div>
+                    <div class="stat-percentage-bar">
+                        <div class="percentage-fill negative" id="negativeBar"></div>
+                    </div>
+                    <div class="stat-label-large" id="negativePercent">0%</div>
+                </div>
+
+                <div class="stat-card total-card">
+                    <div class="stat-card-header">
+                        <div class="stat-icon-large">📊</div>
+                        <div class="stat-badge total">Total</div>
+                    </div>
+                    <div class="stat-number-large" id="totalCount">0</div>
+                    <div class="stat-meta">
+                        <span id="processingTime">0s</span>
+                        <span class="separator">•</span>
+                        <span id="avgSpeed">0/s</span>
+                    </div>
+                    <div class="stat-label-large">Reviews Analyzed</div>
+                </div>
+            </div>
+
+            <!-- NEW: Review Details Button -->
+            <div class="section-card action-section">
+                <button id="viewCommentsBtn" class="btn-primary btn-large">
+                    <span class="btn-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                            <polyline points="14 2 14 8 20 8"/>
+                            <line x1="16" y1="13" x2="8" y2="13"/>
+                            <line x1="16" y1="17" x2="8" y2="17"/>
+                            <polyline points="10 9 9 9 8 9"/>
+                        </svg>
+                    </span>
+                    <span class="btn-text">Review All Comments in Detail</span>
+                </button>
+            </div>
+
+            <!-- Detailed Summary -->
+            <div class="section-card summary-card">
+                <div class="card-header">
+                    <h2 class="section-title">
+                        <span class="title-icon">📋</span>
+                        Comprehensive Analysis Report
+                    </h2>
+                    <button class="btn-icon" onclick="copySummary()" title="Copy Summary">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                        </svg>
+                    </button>
+                </div>
+                <div class="summary-content" id="detailedSummary">
+                    Generating comprehensive analysis...
+                </div>
+            </div>
+            <!-- Batch Summary Generation Section -->
+<div class="section-card batch-summary-section">
+    <div class="card-header">
+        <h2 class="section-title">
+            <span class="title-icon">🎯</span>
+            AI Sentiment Summary Generator
+        </h2>
+        <p class="section-subtitle">Generate comprehensive summaries for positive or negative reviews</p>
+    </div>
+
+    <div class="summary-controls">
+        <div class="control-group">
+            <label class="control-label" for="sentimentSelect">Select Sentiment:</label>
+            <select id="sentimentSelect" class="sentiment-dropdown">
+                <option value="positive">😊 Positive Reviews</option>
+                <option value="negative">😞 Negative Reviews</option>
+            </select>
+        </div>
+        
+        <button id="generateBatchSummary" class="btn-generate-summary">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                <path d="M2 17l10 5 10-5"/>
+                <path d="M2 12l10 5 10-5"/>
+            </svg>
+            Generate Summary
+        </button>
+    </div>
+
+    <div id="batchProgressContainer" class="batch-progress-container hidden">
+        <div class="batch-progress-header">
+            <span class="progress-title">Processing Reviews...</span>
+            <div class="progress-stats">
+                <span class="progress-stat-item">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+                    </svg>
+                    <span id="batchProcessed">0</span> / <span id="batchTotal">0</span>
+                </span>
+                <span class="progress-stat-item">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <polyline points="12 6 12 12 16 14"/>
+                    </svg>
+                    <span id="batchETA">Calculating...</span>
+                </span>
+            </div>
+        </div>
+        <div class="batch-progress-bar">
+            <div id="batchProgressFill" class="batch-progress-fill" style="width: 0%"></div>
+        </div>
+        <p id="batchStatusText" class="batch-status-text">Initializing AI processing...</p>
+    </div>
+
+    <div id="generatedSummaryBox" class="generated-summary-box hidden">
+        <div class="summary-header-with-actions">
+            <span id="summaryTypeBadge" class="summary-type-badge positive">Positive Summary</span>
+            <div class="summary-actions">
+                <button class="btn-icon" onclick="copyBatchSummary()" title="Copy Summary">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                    </svg>
+                </button>
+                <button class="btn-icon" onclick="downloadBatchSummary()" title="Download Summary">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <div id="generatedSummaryText"></div>
+    </div>
+</div>
+
+            <!-- Charts Grid -->
+            <div class="charts-grid">
+                <!-- Sentiment Distribution -->
+                <div class="section-card chart-card">
+                    <div class="card-header">
+                        <h3 class="chart-title">Sentiment Distribution</h3>
+                        <button class="btn-icon" onclick="exportChart('sentimentChart')" title="Export Chart">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="sentimentChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Sentiment Timeline -->
+                <div class="section-card chart-card">
+                    <div class="card-header">
+                        <h3 class="chart-title">Sentiment Flow Timeline</h3>
+                        <button class="btn-icon" onclick="exportChart('timelineChart')" title="Export Chart">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="timelineChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Confidence Distribution -->
+                <div class="section-card chart-card">
+                    <div class="card-header">
+                        <h3 class="chart-title">Prediction Confidence Heatmap</h3>
+                        <button class="btn-icon" onclick="exportChart('confidenceChart')" title="Export Chart">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="confidenceChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Top Keywords -->
+                <div class="section-card chart-card">
+                    <div class="card-header">
+                        <h3 class="chart-title">Top Keywords Analysis</h3>
+                        <div class="keyword-filter">
+                            <button class="filter-btn active" data-sentiment="positive">Positive</button>
+                            <button class="filter-btn" data-sentiment="negative">Negative</button>
+                            <button class="filter-btn" data-sentiment="neutral">Neutral</button>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="keywordsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Download Section -->
+            <div class="section-card download-section">
+                <div class="card-header">
+                    <h2 class="section-title">
+                        <span class="title-icon">💾</span>
+                        Download Results
+                    </h2>
+                </div>
+                <div class="download-grid">
+    <!-- Existing Excel downloads -->
+    <div class="download-card">
+        <div class="download-icon">📊</div>
+        <h3>Complete Analysis</h3>
+        <p>All reviews with sentiment predictions</p>
+        <button class="btn-download" id="downloadComplete">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+            </svg>
+            Download Excel
+        </button>
+    </div>
+
+    <div class="download-card positive">
+        <div class="download-icon">😊</div>
+        <h3>Positive Reviews</h3>
+        <p id="positiveFileCount">0 reviews</p>
+        <button class="btn-download" id="downloadPositive">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+            </svg>
+            Download Excel
+        </button>
+    </div>
+
+    <div class="download-card negative">
+        <div class="download-icon">😞</div>
+        <h3>Negative Reviews</h3>
+        <p id="negativeFileCount">0 reviews</p>
+        <button class="btn-download" id="downloadNegative">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+            </svg>
+            Download Excel
+        </button>
+    </div>
+
+    <div class="download-card neutral">
+        <div class="download-icon">😐</div>
+        <h3>Neutral Reviews</h3>
+        <p id="neutralFileCount">0 reviews</p>
+        <button class="btn-download" id="downloadNeutral">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+            </svg>
+            Download Excel
+        </button>
+    </div>
+
+    <!-- NEW PDF REPORTS -->
+    <div class="download-card" style="border-color: rgba(102, 126, 234, 0.3);">
+        <div class="download-icon">📄</div>
+        <h3>Executive Summary</h3>
+        <p>1-page PDF report with key insights</p>
+        <button class="btn-download" id="downloadPdfExecutive" style="background: rgba(102, 126, 234, 0.1); color: #667eea; border-color: rgba(102, 126, 234, 0.3);">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+            </svg>
+            Download PDF
+        </button>
+    </div>
+
+    <div class="download-card" style="border-color: rgba(118, 75, 162, 0.3);">
+    <div class="download-icon">📑</div>
+    <h3>Detailed Report</h3>
+    <p>Complete PDF with charts, analysis & AI summaries</p>
+    <button class="btn-download" id="downloadPdfDetailed" style="background: rgba(118, 75, 162, 0.1); color: #764ba2; border-color: rgba(118, 75, 162, 0.3);">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+        </svg>
+        Download PDF (AI Enhanced)
+    </button>
+</div>
+</div>
+
+                <button class="btn-secondary btn-large" onclick="location.reload()">
+                    <span class="btn-icon">🔄</span>
+                    <span class="btn-text">Analyze Another File</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- Error Section -->
+        <section id="errorSection" class="section-card error-section hidden">
+            <div class="error-icon">⚠️</div>
+            <h2>Processing Error</h2>
+            <p id="errorMessage">An error occurred during processing</p>
+            <button class="btn-secondary" onclick="location.reload()">Try Again</button>
+        </section>
+    </div>
+
+    <!-- Comment Review Modal -->
+    <div id="commentModal" class="modal hidden">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h2>📝 Detailed Comment Review</h2>
+                <button class="modal-close" onclick="closeCommentModal()">✕</button>
+            </div>
+            
+            <div class="modal-body">
+                <div class="comments-table-container">
+                    <table class="comments-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 60px;">No.</th>
+                                <th style="width: 50%;">Comment</th>
+                                <th style="width: 120px;">Sentiment</th>
+                                <th style="width: 140px;">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="commentsTableBody">
+                            <!-- Comments will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="pagination-container">
+                    <button class="pagination-btn" id="prevPage" onclick="changePage(-1)">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="15 18 9 12 15 6"/>
+                        </svg>
+                        Previous
+                    </button>
+                    
+                    <div class="pagination-numbers" id="paginationNumbers"></div>
+                    
+                    <button class="pagination-btn" id="nextPage" onclick="changePage(1)">
+                        Next
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="9 18 15 12 9 6"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Summary Modal -->
+    <div id="summaryModal" class="modal hidden">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h2>🤖 AI-Powered Comment Analysis</h2>
+                <button class="modal-close" onclick="closeSummaryModal()">✕</button>
+            </div>
+            
+            <div class="modal-body">
+                <div class="summary-section">
+                    <div class="original-comment-box">
+                        <h3>Original Comment</h3>
+                        <p id="summaryOriginalComment"></p>
+                        <div class="comment-meta">
+                            <span class="sentiment-badge" id="summarySentiment"></span>
+                            <span class="confidence-value" id="summaryConfidence"></span>
+                        </div>
+                    </div>
+                    
+                    <div id="summaryLoading" class="summary-loading">
+                        <div class="loading-spinner"></div>
+                        <p>Analyzing comment with AI...</p>
+                    </div>
+                    
+                    <div id="summaryResult" class="summary-result hidden">
+                        <div class="ai-analysis-content" id="aiAnalysisContent"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast hidden">
+        <div class="toast-icon" id="toastIcon">✓</div>
+        <div class="toast-message" id="toastMessage">Action completed</div>
+    </div>
+
+    <footer class="footer">
+        <p>Powered by DistilBERT AI • Optimized for RTX 3050 • <span id="gpuStatus">GPU Accelerated</span></p>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
