@@ -6,6 +6,7 @@
     <title>Sentiment Analysis Pro | Advanced AI Analytics</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/modal.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/chatbot.css') }}">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
@@ -556,5 +557,69 @@
     </footer>
 
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <!-- AI Chatbot -->
+    <button id="chatFab" class="chat-fab" style="display: none;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+        </svg>
+    </button>
+
+    <div id="chatbotContainer" class="chatbot-container hidden">
+        <!-- Loading Overlay -->
+        <div id="summaryLoadingOverlay" class="summary-loading-overlay hidden">
+            <div class="summary-loading-content">
+                <div class="spinner"></div>
+                <h3>Loading Sentiment Data...</h3>
+                <p>Analyzing reviews to provide you<br>with accurate insights</p>
+                <div class="summary-progress">
+                    <div class="summary-progress-bar" style="width: 0%"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chatbot Header -->
+        <div class="chatbot-header">
+            <div class="chatbot-title">
+                <div class="chatbot-avatar">🤖</div>
+                <h3>AI Insights</h3>
+            </div>
+            <button id="chatbotClose" class="chatbot-close">✕</button>
+        </div>
+
+        <!-- Sentiment Selector -->
+        <div class="chatbot-selector">
+            <label for="chatbotSentimentSelect">Analyze:</label>
+            <select id="chatbotSentimentSelect" class="chatbot-sentiment-select">
+                <option value="negative">😞 Negative Reviews</option>
+                <option value="positive">😊 Positive Reviews</option>
+            </select>
+        </div>
+
+        <!-- Messages Area -->
+        <div id="chatbotMessages" class="chatbot-messages">
+            <!-- Messages will be added here dynamically -->
+        </div>
+
+        <!-- Input Area -->
+        <div class="chatbot-input-area">
+            <textarea 
+                id="chatbotInput" 
+                class="chatbot-input" 
+                placeholder="Ask me anything about the reviews..." 
+                rows="1"
+            ></textarea>
+            <button id="chatbotSend" class="chatbot-send">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="22" y1="2" x2="11" y2="13"/>
+                    <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <!-- ADD THIS LINE BELOW -->
+    <script src="{{ url_for('static', filename='js/chatbot.js') }}"></script>
+</body>
 </body>
 </html>
