@@ -1049,7 +1049,136 @@ def generate_pdf_detailed():
         traceback.print_exc()
         return jsonify({'error': str(e)}), 500
 
+@app.route('/api/chat-summary', methods=['POST'])
+def chat_summary():
+    """Generate compressed summary for chatbot context"""
+    try:
+        data = request.json
+        prompt = data.get('prompt', '')
+        max_tokens = data.get('max_tokens', 50)
+        
+        if not prompt:
+            return jsonify({'error': 'No prompt provided', 'success': False}), 400
+        
+        # Get API configuration
+        api_key = os.getenv('SUMMARY_API_KEY')
+        api_url = os.getenv('SUMMARY_API_URL', 'http://127.0.0.1:7860/api/v1/chat')
+        
+        if not api_key:
+            return jsonify({'error': 'API key not configured', 'success': False}), 500
+        
+        headers = {
+            "X-API-Key": api_key,
+            "Content-Type": "application/json"
+        }
+        
+        payload = {
+            "prompt": prompt,
+            "max_tokens": max_tokens,
+            "temperature": 0.3
+        }
+        
+        response = requests.post(api_url, headers=headers, json=payload, timeout=60)
+        
+        if response.status_code == 200:
+            result = response.json()
+            summary_text = (
+                result.get('response') or 
+                result.get('text') or 
+                result.get('output') or 
+                result.get('content') or
+                ''
+            )
+            
+            return jsonify({
+                'summary': summary_text,
+                'success': True
+            })
+        else:
+            return jsonify({'error': f'API returned status {response.status_code}', 'success': False}), 500
+        
+    except Exception as e:
+        print(f"Chat summary error: {e}")
+        traceback.print_exc()
+        return jsonify({'error': str(e), 'success': False}), 500
 
+
+@app.route('/api/chat-query', methods=['POST'])
+def chat_query():
+    """Handle chatbot user queries with AI"""
+    try:
+        data = request.json
+        prompt = data.get('prompt', '')
+        max_tokens = data.get('max_tokens', 200)
+        
+        if not prompt:
+            return jsonify({'error': 'No prompt provided', 'success': False}), 400
+        
+        # Get API configuration
+        api_key = os.getenv('SUMMARY_API_KEY')
+        api_url = os.getenv('SUMMARY_API_URL', 'http://127.0.0.1:7860/api/v1/chat')
+        
+        if not api_key:
+            return jsonify({'error': 'API key not configured', 'success': False}), 500
+        
+        print(f"\n{'='*70}")
+        print(f"🤖 Chatbot Query")
+        print(f"Prompt length: {len(prompt)} characters")
+        
+        headers = {
+            "X-API-Key": api_key,
+            "Content-Type": "application/json"
+        }
+        
+        payload = {
+            "prompt": prompt,
+            "max_tokens": max_tokens,
+            "temperature": 0.4  # Slightly higher for conversational tone
+        }
+        
+        response = requests.post(api_url, headers=headers, json=payload, timeout=90)
+        
+        print(f"Response status: {response.status_code}")
+        
+        if response.status_code == 200:
+            result = response.json()
+            
+            response_text = (
+                result.get('response') or 
+                result.get('text') or 
+                result.get('output') or 
+                result.get('content') or
+                ''
+            )
+            
+            print(f"✅ Response generated ({len(response_text)} characters)")
+            print(f"{'='*70}\n")
+            
+            return jsonify({
+                'response': response_text,
+                'success': True
+            })
+        else:
+            error_msg = f"API returned status code {response.status_code}"
+            print(f"❌ Error: {error_msg}")
+            return jsonify({'error': error_msg, 'success': False}), 500
+        
+    except requests.exceptions.Timeout:
+        error_msg = "Request timeout - AI took too long to respond"
+        print(f"❌ Error: {error_msg}")
+        return jsonify({'error': error_msg, 'success': False}), 504
+        
+    except requests.exceptions.ConnectionError:
+        error_msg = f"Cannot connect to AI model at {api_url}"
+        print(f"❌ Error: {error_msg}")
+        return jsonify({'error': error_msg, 'success': False}), 503
+        
+    except Exception as e:
+        print(f"❌ Chatbot query error: {e}")
+        traceback.print_exc()
+        return jsonify({'error': str(e), 'success': False}), 500
+    
+    
 if __name__ == '__main__':
     print("\n" + "="*70)
     print("✅ SENTIMENT ANALYSIS SYSTEM READY")
@@ -1068,3 +1197,4 @@ if __name__ == '__main__':
     print("ℹ  Press Ctrl+C to stop\n")
     
     app.run(debug=False, host='0.0.0.0', port=5000, threaded=True)
+    
