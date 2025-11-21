@@ -65,9 +65,18 @@ function addWelcomeMessage() {
             <div class="message-avatar bot">🤖</div>
             <div class="message-content bot welcome-message">
                 <h4>👋 Welcome to AI Insights!</h4>
-                <p>I'm your AI assistant, ready to help you understand your customer feedback better. Select a sentiment category above and ask me anything about the reviews!</p>
-                <p style="margin-top: 0.75rem; font-size: 0.85rem; opacity: 0.8;">
-                    <strong>Try asking:</strong><br>
+                <p>I'm your intelligent assistant for sentiment analysis. I can help you navigate the app and answer questions about your reviews!</p>
+                
+                <p style="margin-top: 0.75rem; font-size: 0.9rem;">
+                    <strong>🎯 Smart Navigation - Try saying:</strong><br>
+                    • "Generate a negative summary"<br>
+                    • "Show me individual comment analysis"<br>
+                    • "Take me to downloads"<br>
+                    • "Create a positive summary"
+                </p>
+                
+                <p style="margin-top: 0.75rem; font-size: 0.9rem;">
+                    <strong>💡 Analysis Questions:</strong><br>
                     • "What can I improve?"<br>
                     • "What are the main complaints?"<br>
                     • "Give me 3 action items"
@@ -302,8 +311,20 @@ function scrollToBottom() {
 // AI RESPONSE GENERATION
 // ============================================================
 
+// ============================================================
+// AI RESPONSE GENERATION WITH INTELLIGENT INTENT DETECTION
+// ============================================================
+
 async function getAIResponse(userQuestion) {
-    // Build comprehensive prompt
+    // STEP 1: Ask AI to classify the user's intent
+    const intentResult = await detectIntentWithAI(userQuestion);
+    
+    // STEP 2: If AI detected a navigation intent, handle it
+    if (intentResult.isNavigation) {
+        return handleNavigationIntent(intentResult.intent);
+    }
+    
+    // STEP 3: Otherwise, answer the question normally
     const prompt = buildAIPrompt(userQuestion);
     
     try {
@@ -312,7 +333,7 @@ async function getAIResponse(userQuestion) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 prompt: prompt,
-                max_tokens: 200 // Limit response to 2-3 lines
+                max_tokens: 200
             })
         });
         
@@ -333,6 +354,257 @@ async function getAIResponse(userQuestion) {
         throw error;
     }
 }
+
+// ============================================================
+// NEW: INTELLIGENT INTENT DETECTION USING AI
+// ============================================================
+
+async function detectIntentWithAI(userQuestion) {
+    const intentPrompt = `You are an intent classifier for a sentiment analysis app.
+
+The app has these capabilities:
+1. GENERATE_POSITIVE_SUMMARY - Create AI summary of positive reviews
+2. GENERATE_NEGATIVE_SUMMARY - Create AI summary of negative reviews  
+3. VIEW_COMMENTS - Browse individual comments with AI analysis
+4. DOWNLOAD_REPORTS - Download Excel/PDF files
+
+User said: "${userQuestion}"
+
+INSTRUCTIONS:
+- If user wants to generate/create/see a summary of positive reviews, respond: GENERATE_POSITIVE_SUMMARY
+- If user wants to generate/create/see a summary of negative reviews, respond: GENERATE_NEGATIVE_SUMMARY
+- If user wants to see/view/browse individual comments/reviews, respond: VIEW_COMMENTS
+- If user wants to download/export/get files/reports, respond: DOWNLOAD_REPORTS
+- If none of above, respond: NO_NAVIGATION
+
+Respond with ONLY ONE WORD from the options above.`;
+
+    try {
+        const response = await fetch('/api/chat-query', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                prompt: intentPrompt,
+                max_tokens: 10
+            })
+        });
+        
+        if (!response.ok) {
+            console.warn('Intent detection failed, falling back to keyword matching');
+            return { isNavigation: false };
+        }
+        
+        const data = await response.json();
+        
+        if (!data.success) {
+            return { isNavigation: false };
+        }
+        
+        const aiIntent = data.response.trim().toUpperCase();
+        
+        console.log('🎯 AI detected intent:', aiIntent);
+        
+        // Validate AI response and map to navigation intents
+        const intentMapping = {
+            'GENERATE_POSITIVE_SUMMARY': { type: 'generate_summary', sentiment: 'positive' },
+            'GENERATE_NEGATIVE_SUMMARY': { type: 'generate_summary', sentiment: 'negative' },
+            'VIEW_COMMENTS': { type: 'view_comments' },
+            'DOWNLOAD_REPORTS': { type: 'download_report' },
+            'NO_NAVIGATION': null
+        };
+        
+        // Check if AI response is valid
+        if (intentMapping.hasOwnProperty(aiIntent)) {
+            const intent = intentMapping[aiIntent];
+            
+            if (intent === null) {
+                return { isNavigation: false };
+            }
+            
+            return { isNavigation: true, intent: intent };
+        }
+        
+        // If AI gave invalid response, fallback to keyword matching
+        console.warn('⚠️ AI gave unexpected response:', aiIntent, '- Using fallback');
+        return fallbackKeywordDetection(userQuestion);
+        
+    } catch (error) {
+        console.error('Intent detection error:', error);
+        // Fallback to old keyword matching
+        return fallbackKeywordDetection(userQuestion);
+    }
+}
+
+// ============================================================
+// FALLBACK: KEYWORD-BASED DETECTION (OLD METHOD)
+// ============================================================
+
+function fallbackKeywordDetection(userQuestion) {
+    console.log('📋 Using fallback keyword detection');
+    
+    const question = userQuestion.toLowerCase();
+    
+    // Intent 1: Generate summary (positive/negative)
+    const summaryKeywords = ['generate', 'create', 'make', 'show me', 'give me'];
+    const sentimentKeywords = ['positive', 'negative', 'summary', 'analysis', 'insights'];
+    
+    if (summaryKeywords.some(kw => question.includes(kw)) && 
+        sentimentKeywords.some(kw => question.includes(kw))) {
+        
+        if (question.includes('positive')) {
+            return { isNavigation: true, intent: { type: 'generate_summary', sentiment: 'positive' } };
+        } else if (question.includes('negative')) {
+            return { isNavigation: true, intent: { type: 'generate_summary', sentiment: 'negative' } };
+        }
+    }
+    
+    // Intent 2: View individual comments
+    const commentKeywords = ['see comments', 'view comments', 'show comments', 'individual', 
+                            'single comment', 'detail', 'review details', 'browse'];
+    
+    if (commentKeywords.some(kw => question.includes(kw))) {
+        return { isNavigation: true, intent: { type: 'view_comments' } };
+    }
+    
+    // Intent 3: Download reports
+    const downloadKeywords = ['download', 'export', 'get report', 'pdf', 'excel'];
+    
+    if (downloadKeywords.some(kw => question.includes(kw))) {
+        return { isNavigation: true, intent: { type: 'download_report' } };
+    }
+    
+    return { isNavigation: false };
+}
+
+function detectNavigationIntent(userQuestion) {
+    const question = userQuestion.toLowerCase();
+    
+    // Intent 1: Generate summary (positive/negative)
+    const summaryKeywords = ['generate', 'create', 'make', 'show me'];
+    const sentimentKeywords = ['positive summary','positive analysis','positive insights',
+                               ,'negative analysis','negative insights','negative summary', 'brief summary', 'comprehensive summary'];
+    
+    if (summaryKeywords.some(kw => question.includes(kw)) && 
+        sentimentKeywords.some(kw => question.includes(kw))) {
+        
+        // Detect which sentiment
+        if (question.includes('positive')) {
+            return { type: 'generate_summary', sentiment: 'positive' };
+        } else if (question.includes('negative')) {
+            return { type: 'generate_summary', sentiment: 'negative' };
+        }
+    }
+    
+    // Intent 2: View individual comments
+    const commentKeywords = ['see comments', 'view comments', 'show comments', 'individual comments', 
+                            'single comment', 'comment analysis', 'detail', 'review details', 
+                            'all comments', 'comment by comment'];
+    
+    if (commentKeywords.some(kw => question.includes(kw))) {
+        return { type: 'view_comments' };
+    }
+    
+    // Intent 3: Download reports
+    const downloadKeywords = ['download', 'export', 'get report', 'pdf'];
+    
+    if (downloadKeywords.some(kw => question.includes(kw))) {
+        return { type: 'download_report' };
+    }
+    
+    return null; // No navigation intent detected
+}
+
+function handleNavigationIntent(intent) {
+    switch (intent.type) {
+        case 'generate_summary':
+            navigateToSummaryGenerator(intent.sentiment);
+            return `I'm taking you to the AI Summary Generator. I've selected ${intent.sentiment} reviews for you. Just click the "Generate Summary" button to create a comprehensive analysis! 🎯`;
+        
+        case 'view_comments':
+            navigateToCommentReview();
+            return `I'm opening the detailed comment review section for you. You can browse through all comments individually and get AI-powered analysis for each one! 📝`;
+        
+        case 'download_report':
+            scrollToDownloadSection();
+            return `I've scrolled to the download section for you. You can download Excel files for each sentiment category, or generate comprehensive PDF reports with AI analysis! 📥`;
+        
+        default:
+            return null;
+    }
+}
+
+function navigateToSummaryGenerator(sentiment) {
+    // Close chatbot
+    closeChatbot();
+    
+    // Scroll to batch summary section
+    const summarySection = document.querySelector('.batch-summary-section');
+    if (summarySection) {
+        summarySection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        
+        // Set the sentiment dropdown
+        setTimeout(() => {
+            const sentimentSelect = document.getElementById('sentimentSelect');
+            if (sentimentSelect) {
+                sentimentSelect.value = sentiment;
+                
+                // Highlight the section
+                summarySection.style.border = '2px solid var(--accent-primary)';
+                summarySection.style.boxShadow = '0 0 20px rgba(102, 126, 234, 0.5)';
+                
+                setTimeout(() => {
+                    summarySection.style.border = '';
+                    summarySection.style.boxShadow = '';
+                }, 3000);
+            }
+        }, 500);
+    }
+}
+
+function navigateToCommentReview() {
+    // Close chatbot
+    closeChatbot();
+    
+    // Find and click the "Review All Comments" button
+    const viewCommentsBtn = document.getElementById('viewCommentsBtn');
+    if (viewCommentsBtn) {
+        viewCommentsBtn.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        
+        setTimeout(() => {
+            // Highlight the button
+            viewCommentsBtn.style.transform = 'scale(1.05)';
+            viewCommentsBtn.style.boxShadow = '0 0 30px rgba(102, 126, 234, 0.7)';
+            
+            setTimeout(() => {
+                viewCommentsBtn.click();
+                viewCommentsBtn.style.transform = '';
+                viewCommentsBtn.style.boxShadow = '';
+            }, 800);
+        }, 500);
+    }
+}
+
+function scrollToDownloadSection() {
+    // Close chatbot
+    closeChatbot();
+    
+    // Scroll to download section
+    const downloadSection = document.querySelector('.download-section');
+    if (downloadSection) {
+        downloadSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        
+        setTimeout(() => {
+            downloadSection.style.border = '2px solid var(--positive)';
+            downloadSection.style.boxShadow = '0 0 20px rgba(16, 185, 129, 0.5)';
+            
+            setTimeout(() => {
+                downloadSection.style.border = '';
+                downloadSection.style.boxShadow = '';
+            }, 3000);
+        }, 500);
+    }
+}
+
 
 function buildAIPrompt(userQuestion) {
     const prompt = `You are an expert business analyst helping interpret customer sentiment data.
