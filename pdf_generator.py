@@ -191,6 +191,137 @@ class EnhancedPDFReportGenerator:
         self.story.append(drawing)
         self.story.append(Spacer(1, 0.3 * inch))
     
+    def add_timeline_chart(self, timeline_data):
+        """Add line chart showing sentiment flow over time"""
+        from reportlab.graphics.charts.linecharts import HorizontalLineChart
+        
+        drawing = Drawing(500, 250)
+        chart = HorizontalLineChart()
+        chart.x = 50
+        chart.y = 50
+        chart.width = 400
+        chart.height = 150
+        
+        # Sample data (take max 50 points for clarity)
+        step = max(1, len(timeline_data) // 50)
+        sampled = timeline_data[::step][:50]
+        
+        # Prepare data
+        positive_points = []
+        negative_points = []
+        neutral_points = []
+        
+        for point in sampled:
+            if point['sentiment'] == 'positive':
+                positive_points.append(point['row'])
+            else:
+                positive_points.append(None)
+                
+            if point['sentiment'] == 'negative':
+                negative_points.append(point['row'])
+            else:
+                negative_points.append(None)
+                
+            if point['sentiment'] == 'neutral':
+                neutral_points.append(point['row'])
+            else:
+                neutral_points.append(None)
+        
+        chart.data = [positive_points, negative_points, neutral_points]
+        chart.categoryAxis.categoryNames = [str(p['row']) for p in sampled]
+        
+        # Styling
+        chart.lines[0].strokeColor = colors.HexColor('#10b981')  # Positive
+        chart.lines[0].strokeWidth = 2
+        chart.lines[1].strokeColor = colors.HexColor('#ef4444')  # Negative
+        chart.lines[1].strokeWidth = 2
+        chart.lines[2].strokeColor = colors.HexColor('#f59e0b')  # Neutral
+        chart.lines[2].strokeWidth = 2
+        
+        # Axes
+        chart.valueAxis.valueMin = 0
+        chart.valueAxis.valueMax = max([p['row'] for p in sampled]) + 50
+        chart.categoryAxis.labels.angle = 45
+        chart.categoryAxis.labels.fontSize = 6
+        
+        drawing.add(chart)
+        
+        self.story.append(drawing)
+        self.story.append(Spacer(1, 0.3 * inch))
+    
+    def add_confidence_chart(self, confidence_data):
+        """Add bar chart showing confidence distribution"""
+        drawing = Drawing(500, 250)
+        chart = VerticalBarChart()
+        chart.x = 50
+        chart.y = 50
+        chart.width = 400
+        chart.height = 150
+        
+        chart.data = [confidence_data]
+        chart.categoryAxis.categoryNames = [
+            '0-10%', '10-20%', '20-30%', '30-40%', '40-50%',
+            '50-60%', '60-70%', '70-80%', '80-90%', '90-100%'
+        ]
+        
+        # Color gradient from light to dark purple
+        colors_list = [
+            colors.HexColor('#e9d5ff'),
+            colors.HexColor('#d8b4fe'),
+            colors.HexColor('#c084fc'),
+            colors.HexColor('#a855f7'),
+            colors.HexColor('#9333ea'),
+            colors.HexColor('#7e22ce'),
+            colors.HexColor('#6b21a8'),
+            colors.HexColor('#581c87'),
+            colors.HexColor('#4c1d95'),
+            colors.HexColor('#3b0764'),
+        ]
+        
+        for i in range(len(confidence_data)):
+            chart.bars[0].fillColor = colors_list[i]
+        
+        chart.valueAxis.valueMin = 0
+        chart.categoryAxis.labels.angle = 45
+        chart.categoryAxis.labels.fontSize = 8
+        
+        drawing.add(chart)
+        
+        self.story.append(drawing)
+        self.story.append(Spacer(1, 0.3 * inch))
+    
+    def add_keywords_bar_chart(self, keywords_data, sentiment_type):
+        """Add horizontal bar chart for keywords"""
+        drawing = Drawing(500, 200)
+        chart = VerticalBarChart()
+        chart.x = 50
+        chart.y = 30
+        chart.width = 400
+        chart.height = 140
+        
+        # Take top 10 keywords
+        top_keywords = keywords_data[:10]
+        
+        chart.data = [[kw['count'] for kw in top_keywords]]
+        chart.categoryAxis.categoryNames = [kw['word'] for kw in top_keywords]
+        
+        # Color based on sentiment
+        if sentiment_type == 'positive':
+            chart.bars[0].fillColor = colors.HexColor('#10b981')
+        elif sentiment_type == 'negative':
+            chart.bars[0].fillColor = colors.HexColor('#ef4444')
+        else:
+            chart.bars[0].fillColor = colors.HexColor('#f59e0b')
+        
+        chart.valueAxis.valueMin = 0
+        chart.categoryAxis.labels.angle = 45
+        chart.categoryAxis.labels.fontSize = 8
+        chart.valueAxis.labels.fontSize = 8
+        
+        drawing.add(chart)
+        
+        self.story.append(drawing)
+        self.story.append(Spacer(1, 0.2 * inch))
     def add_summary_section(self, title, summary_text, icon="📋"):
         """Add formatted summary section"""
         self.story.append(Paragraph(f"{icon} {title}", self.heading_style))
@@ -490,7 +621,7 @@ def call_summary_api(prompt, max_tokens, api_key, api_url):
 
 
 def generate_detailed_report_with_ai(status, output_path, api_key, api_url):
-    """Generate detailed multi-page report with AI summaries for all sentiments"""
+    """Generate detailed multi-page report with AI summaries and ALL charts"""
     
     print(f"\n{'='*70}")
     print(f"📄 GENERATING DETAILED PDF REPORT WITH AI SUMMARIES")
@@ -499,7 +630,7 @@ def generate_detailed_report_with_ai(status, output_path, api_key, api_url):
     pdf = EnhancedPDFReportGenerator(output_path)
     
     # ========================================
-    # PAGE 1: HEADER & OVERVIEW
+    # PAGE 1: COVER PAGE WITH METADATA
     # ========================================
     
     pdf.add_header(
@@ -507,7 +638,7 @@ def generate_detailed_report_with_ai(status, output_path, api_key, api_url):
         f"Detailed Analysis with AI Insights | {datetime.now().strftime('%B %d, %Y')}"
     )
     
-    # Metadata
+    # Metadata Table
     total = status['total']
     positive = status['positive_count']
     negative = status['negative_count']
@@ -524,7 +655,7 @@ def generate_detailed_report_with_ai(status, output_path, api_key, api_url):
     
     pdf.add_metadata_table(metadata)
     
-    # Statistics with chart
+    # Statistics Table
     pos_pct = (positive / total * 100) if total > 0 else 0
     neg_pct = (negative / total * 100) if total > 0 else 0
     neu_pct = (neutral / total * 100) if total > 0 else 0
@@ -537,6 +668,16 @@ def generate_detailed_report_with_ai(status, output_path, api_key, api_url):
     
     pdf.add_statistics_table(stats)
     
+    # ========================================
+    # PAGE 2: SENTIMENT DISTRIBUTION WITH PIE CHART
+    # ========================================
+    
+    pdf.add_page_break()
+    
+    pdf.story.append(Paragraph("Sentiment Distribution", pdf.heading_style))
+    pdf.story.append(Spacer(1, 0.2 * inch))
+    
+    # Add Pie Chart
     chart_data = [
         ('Positive', positive),
         ('Negative', negative),
@@ -545,7 +686,63 @@ def generate_detailed_report_with_ai(status, output_path, api_key, api_url):
     pdf.add_pie_chart(chart_data, "Sentiment Distribution Visualization")
     
     # ========================================
-    # SECTION 1: COMPREHENSIVE ANALYSIS
+    # PAGE 3: SENTIMENT FLOW TIMELINE CHART
+    # ========================================
+    
+    pdf.add_page_break()
+    
+    pdf.story.append(Paragraph("Sentiment Flow Timeline", pdf.heading_style))
+    pdf.story.append(Spacer(1, 0.2 * inch))
+    
+    # Add Timeline Chart
+    timeline_data = status.get('sentiment_timeline', [])
+    if timeline_data:
+        pdf.add_timeline_chart(timeline_data)
+    
+    # ========================================
+    # PAGE 4: CONFIDENCE DISTRIBUTION CHART
+    # ========================================
+    
+    pdf.add_page_break()
+    
+    pdf.story.append(Paragraph("Prediction Confidence Heatmap", pdf.heading_style))
+    pdf.story.append(Spacer(1, 0.2 * inch))
+    
+    # Add Confidence Chart
+    confidence_data = status.get('confidence_distribution', [])
+    if confidence_data:
+        pdf.add_confidence_chart(confidence_data)
+    
+    # ========================================
+    # PAGE 5: TOP KEYWORDS CHARTS (All 3 sentiments)
+    # ========================================
+    
+    pdf.add_page_break()
+    
+    pdf.story.append(Paragraph("Top Keywords Analysis", pdf.heading_style))
+    pdf.story.append(Spacer(1, 0.3 * inch))
+    
+    keywords = status.get('top_keywords', {})
+    
+    # Positive Keywords Chart
+    if keywords.get('positive'):
+        pdf.story.append(Paragraph("😊 Positive Keywords", pdf.subheading_style))
+        pdf.add_keywords_bar_chart(keywords['positive'], 'positive')
+        pdf.story.append(Spacer(1, 0.3 * inch))
+    
+    # Negative Keywords Chart
+    if keywords.get('negative'):
+        pdf.story.append(Paragraph("😞 Negative Keywords", pdf.subheading_style))
+        pdf.add_keywords_bar_chart(keywords['negative'], 'negative')
+        pdf.story.append(Spacer(1, 0.3 * inch))
+    
+    # Neutral Keywords Chart (if exists)
+    if keywords.get('neutral'):
+        pdf.story.append(Paragraph("😐 Neutral Keywords", pdf.subheading_style))
+        pdf.add_keywords_bar_chart(keywords['neutral'], 'neutral')
+    
+    # ========================================
+    # PAGE 6+: COMPREHENSIVE ANALYSIS REPORT
     # ========================================
     
     pdf.add_page_break()
@@ -558,7 +755,7 @@ def generate_detailed_report_with_ai(status, output_path, api_key, api_url):
     )
     
     # ========================================
-    # SECTION 2: POSITIVE REVIEWS AI ANALYSIS
+    # POSITIVE REVIEWS AI ANALYSIS
     # ========================================
     
     pdf.add_page_break()
@@ -580,7 +777,7 @@ def generate_detailed_report_with_ai(status, output_path, api_key, api_url):
     )
     
     # ========================================
-    # SECTION 3: NEGATIVE REVIEWS AI ANALYSIS
+    # NEGATIVE REVIEWS AI ANALYSIS
     # ========================================
     
     pdf.add_page_break()
@@ -601,42 +798,176 @@ def generate_detailed_report_with_ai(status, output_path, api_key, api_url):
     )
     
     # ========================================
-    # SECTION 4: KEYWORDS & RECOMMENDATIONS
+    # RECOMMENDATIONS PAGE
     # ========================================
     
     pdf.add_page_break()
     
-    # Keywords
-    keywords = status.get('top_keywords', {})
-    if keywords:
-        pdf.add_keywords_section(keywords)
+    pdf.story.append(Paragraph("📋 Strategic Recommendations", pdf.heading_style))
+    pdf.story.append(Spacer(1, 0.3 * inch))
     
-    # Recommendations
-    recommendations = []
-    
-    if pos_pct > 60:
-        recommendations.append("Leverage positive sentiment in marketing materials and testimonials")
-        recommendations.append("Identify and replicate factors driving customer satisfaction")
-    
-    if neg_pct > 30:
-        recommendations.append("Implement immediate action plan to address critical negative feedback")
-        recommendations.append("Establish customer service recovery protocols for dissatisfied customers")
-    
-    if neg_pct < 20 and pos_pct > 60:
-        recommendations.append("Focus on converting neutral customers to promoters")
-        recommendations.append("Develop customer loyalty programs to maintain positive momentum")
-    
-    recommendations.append("Monitor sentiment trends weekly to catch issues early")
-    recommendations.append("Create feedback loop to ensure customer concerns are addressed")
+    # Generate comprehensive recommendations
+    recommendations = generate_comprehensive_recommendations(status, pos_pct, neg_pct, neu_pct)
     
     pdf.add_recommendations(recommendations)
     
-    # Footer
+    # ========================================
+    # FINAL PAGE: KEYWORDS SUMMARY & ACTIONS
+    # ========================================
+    
+    pdf.add_page_break()
+    
+    # Keywords Summary (text format)
+    pdf.add_keywords_section(keywords)
+    
+    pdf.story.append(Spacer(1, 0.5 * inch))
+    
+    # Quick action items
+    quick_actions = [
+        "Monitor sentiment trends weekly to identify emerging issues early",
+        "Create feedback loops to ensure customer concerns are promptly addressed",
+        "Leverage positive sentiment in marketing materials and customer testimonials",
+        "Develop targeted improvement plans for critical negative feedback areas"
+    ]
+    
+    pdf.add_recommendations(quick_actions)
+    
+    # Footer with timestamp and branding
     pdf.add_footer_note()
     
     # Generate
     print(f"\n{'='*70}")
     print("📝 Building final PDF document...")
     pdf.generate()
-    print(f"✓ DETAILED REPORT COMPLETED")
+    print(f"✅ DETAILED REPORT COMPLETED")
     print(f"{'='*70}\n")
+
+def generate_comprehensive_recommendations(status, pos_pct, neg_pct, neu_pct):
+    """Generate 10-15 detailed recommendations based on sentiment analysis"""
+    
+    recommendations = []
+    total = status['total']
+    
+    # Positive sentiment recommendations
+    if pos_pct > 60:
+        recommendations.extend([
+            "Leverage the strong positive sentiment ({}%) by featuring customer testimonials prominently on your website and marketing materials".format(int(pos_pct)),
+            "Create case studies from satisfied customers to demonstrate proven value to potential clients",
+            "Implement a customer referral program to capitalize on high satisfaction levels",
+            "Develop a customer loyalty rewards program to maintain and strengthen positive relationships"
+        ])
+    elif pos_pct > 40:
+        recommendations.extend([
+            "Build on the moderate positive sentiment ({}%) by identifying and replicating success factors across all customer touchpoints".format(int(pos_pct)),
+            "Conduct in-depth interviews with satisfied customers to understand what drives their positive experience"
+        ])
+    
+    # Negative sentiment recommendations
+    if neg_pct > 40:
+        recommendations.extend([
+            "URGENT: Address the high negative sentiment ({}%) by establishing a rapid response team for critical customer issues".format(int(neg_pct)),
+            "Implement immediate quality control measures to prevent recurring problems mentioned in negative reviews",
+            "Create a comprehensive customer recovery program with clear escalation procedures",
+            "Schedule weekly leadership reviews of negative feedback to ensure accountability",
+            "Develop targeted training programs for staff based on specific complaints identified"
+        ])
+    elif neg_pct > 20:
+        recommendations.extend([
+            "Analyze negative feedback patterns ({}%) to identify root causes and implement preventive measures".format(int(neg_pct)),
+            "Establish a customer feedback response protocol with guaranteed response times",
+            "Create a dedicated team to proactively reach out to dissatisfied customers"
+        ])
+    
+    # Neutral sentiment recommendations
+    if neu_pct > 15:
+        recommendations.extend([
+            "Convert neutral customers ({}%) into promoters by implementing personalized follow-up campaigns".format(int(neu_pct)),
+            "Conduct surveys with neutral respondents to understand what would improve their experience",
+            "Create targeted engagement programs to move neutral customers toward positive sentiment"
+        ])
+    
+    # General operational recommendations
+    recommendations.extend([
+        "Establish a centralized customer feedback dashboard for real-time sentiment monitoring",
+        "Implement AI-powered sentiment analysis on all customer communications for early issue detection",
+        "Create monthly sentiment trend reports for executive leadership and board presentations",
+        "Develop department-specific action plans based on feedback themes relevant to each team"
+    ])
+    
+    # Data-driven recommendations
+    if total > 1000:
+        recommendations.append(
+            "With {} reviews analyzed, establish this as a baseline for quarterly sentiment tracking".format(total)
+        )
+    
+    return recommendations[:15]  # Return maximum 15 recommendations
+
+def generate_comprehensive_recommendations(status, pos_pct, neg_pct, neu_pct):
+    """Generate 10-15 detailed recommendations based on sentiment analysis"""
+    
+    recommendations = []
+    total = status['total']
+    
+    # Positive sentiment recommendations
+    if pos_pct > 60:
+        recommendations.extend([
+            "Leverage the strong positive sentiment ({}%) by featuring customer testimonials prominently on your website and marketing materials".format(int(pos_pct)),
+            "Create case studies from satisfied customers to demonstrate proven value to potential clients",
+            "Implement a customer referral program to capitalize on high satisfaction levels",
+            "Develop a customer loyalty rewards program to maintain and strengthen positive relationships"
+        ])
+    elif pos_pct > 40:
+        recommendations.extend([
+            "Build on the moderate positive sentiment ({}%) by identifying and replicating success factors across all customer touchpoints".format(int(pos_pct)),
+            "Conduct in-depth interviews with satisfied customers to understand what drives their positive experience"
+        ])
+    else:
+        recommendations.extend([
+            "Address the low positive sentiment ({}%) by identifying and promoting your unique value propositions more effectively".format(int(pos_pct)),
+            "Implement a comprehensive customer satisfaction improvement program"
+        ])
+    
+    # Negative sentiment recommendations
+    if neg_pct > 40:
+        recommendations.extend([
+            "URGENT: Address the high negative sentiment ({}%) by establishing a rapid response team for critical customer issues".format(int(neg_pct)),
+            "Implement immediate quality control measures to prevent recurring problems mentioned in negative reviews",
+            "Create a comprehensive customer recovery program with clear escalation procedures",
+            "Schedule weekly leadership reviews of negative feedback to ensure accountability",
+            "Develop targeted training programs for staff based on specific complaints identified"
+        ])
+    elif neg_pct > 20:
+        recommendations.extend([
+            "Analyze negative feedback patterns ({}%) to identify root causes and implement preventive measures".format(int(neg_pct)),
+            "Establish a customer feedback response protocol with guaranteed response times",
+            "Create a dedicated team to proactively reach out to dissatisfied customers"
+        ])
+    else:
+        recommendations.append(
+            "Maintain low negative sentiment ({}%) through continued focus on quality and customer service excellence".format(int(neg_pct))
+        )
+    
+    # Neutral sentiment recommendations
+    if neu_pct > 15:
+        recommendations.extend([
+            "Convert neutral customers ({}%) into promoters by implementing personalized follow-up campaigns".format(int(neu_pct)),
+            "Conduct surveys with neutral respondents to understand what would improve their experience",
+            "Create targeted engagement programs to move neutral customers toward positive sentiment"
+        ])
+    
+    # General operational recommendations
+    recommendations.extend([
+        "Establish a centralized customer feedback dashboard for real-time sentiment monitoring",
+        "Implement AI-powered sentiment analysis on all customer communications for early issue detection",
+        "Create monthly sentiment trend reports for executive leadership and board presentations",
+        "Develop department-specific action plans based on feedback themes relevant to each team",
+        "Set up automated alerts for sudden changes in sentiment patterns to enable rapid response"
+    ])
+    
+    # Data-driven recommendations
+    if total > 1000:
+        recommendations.append(
+            "With {} reviews analyzed, establish this as a baseline for quarterly sentiment tracking and competitive benchmarking".format(total)
+        )
+    
+    return recommendations[:15]  # Return maximum 15 recommendations
